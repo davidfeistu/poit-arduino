@@ -33,3 +33,27 @@ void readDHT11(int dht11_pin, int& readDHT, float& temp, float& hum) {
   hum = DHT.humidity;          
   readDHT = readData;
 }
+
+void measureDistance(int triggerPin, int echoPin, float temp, float hum, float& distance) {
+  float speedOfSound = 331.4 + (0.6 * temp) + (0.0124 * hum); 
+  digitalWrite(triggerPin, LOW);
+  delayMicroseconds(1);
+  digitalWrite(triggerPin, HIGH);
+  delayMicroseconds(1);
+  digitalWrite(triggerPin, LOW);
+  long duration = pulseIn(echoPin, HIGH);
+  distance = (duration/2) * (speedOfSound/10000); 
+  if (distance < 5) {
+    recordValues = true;
+  } 
+}
+
+void printData(float temp, float hum, float distance) {
+  Serial.print("{\"t\":");
+  Serial.print(temp, 1);
+  Serial.print(", \"h\":");
+  Serial.print(hum, 1);
+  Serial.print(", \"d\":");
+  Serial.print(distance, 1);
+  Serial.println("}");
+}
