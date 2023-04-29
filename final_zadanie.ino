@@ -25,3 +25,11 @@ void setup() {
   beepSound = false;
   recordValues = false;
 }
+
+//read humidity values
+void readDHT11(int dht11_pin, int& readDHT, float& temp, float& hum) {
+  int readData = DHT.read11(dht11_pin);
+  temp = DHT.temperature;        
+  hum = DHT.humidity;          
+  readDHT = readData;
+}
