@@ -57,3 +57,55 @@ void printData(float temp, float hum, float distance) {
   Serial.print(distance, 1);
   Serial.println("}");
 }
+
+
+void beep(int distance, int buzzerPin) {
+  if (distance < 5) {
+    tone(buzzerPin, 4000);
+  } else if (distance < 30) {
+    int delayTime = map(distance * 2, 5, 30, 50, 300);
+    for (int i = 0; i < 10; i++) {
+      tone(buzzerPin, 4000, 50);
+      delay(delayTime);
+    }
+  } else {
+    noTone(buzzerPin);
+  }
+}
+
+
+
+void loop() {
+
+  if (Serial.available()) {
+    String command = Serial.readString();
+    if (command.indexOf("beepStart") >= 0) {
+      beepSound = true;
+    } else if (command.indexOf("beepEnd") >= 0) {
+      beepSound = false;
+    } else if (command.indexOf("recordStart") >= 0) {
+      recordValues = true;
+    } else if (command.indexOf("recordEnd") >= 0) {
+      recordValues = false;
+    }
+  }
+
+  int readDHT;
+  float temp, hum;
+  readDHT11(dht11, readDHT, temp, hum);
+
+  float distance;
+  measureDistance(TRIGGER_PIN, ECHO_PIN, temp, hum, distance);
+
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    if(recordValues == 1){
+      printData(temp, hum, distance);
+    }
+  }
+
+  if(beepSound == true){
+    beep(distance, buzzerPin);
+  }
+}
