@@ -12,7 +12,7 @@ dht DHT;
 int readDHT, temp, hum;
 float speedOfSound, distance, duration;
 unsigned long previousMillis = 0;
-const long interval = 2000;
+const long interval = 1000;
 bool beepSound;
 bool recordValues;
 
@@ -21,12 +21,11 @@ void setup() {
   pinMode(ECHO_PIN, INPUT);
   pinMode(buzzerPin, OUTPUT);
   pinMode(inputPin, OUTPUT);
-  Serial.begin(9600);
+  Serial.begin(115200);
   beepSound = false;
   recordValues = false;
 }
 
-//read humidity values
 void readDHT11(int dht11_pin, int& readDHT, float& temp, float& hum) {
   int readData = DHT.read11(dht11_pin);
   temp = DHT.temperature;        
@@ -58,25 +57,31 @@ void printData(float temp, float hum, float distance) {
   Serial.println("}");
 }
 
-
 void beep(int distance, int buzzerPin) {
   if (distance < 5) {
     tone(buzzerPin, 4000);
   } else if (distance < 30) {
     int delayTime = map(distance * 2, 5, 30, 50, 300);
-    for (int i = 0; i < 10; i++) {
-      tone(buzzerPin, 4000, 50);
-      delay(delayTime);
+    int beepCount = 10;
+    int beepIndex = 0;
+    unsigned long previousMillis = 0;
+    unsigned long interval = delayTime;
+    while (beepIndex < beepCount) {
+      unsigned long currentMillis = millis();
+      if (currentMillis - previousMillis >= interval) {
+        previousMillis = currentMillis;
+        tone(buzzerPin, 4000, 50);
+        beepIndex++;
+      }
     }
+    noTone(buzzerPin);
   } else {
     noTone(buzzerPin);
   }
 }
 
-
-
 void loop() {
-
+  
   if (Serial.available()) {
     String command = Serial.readString();
     if (command.indexOf("beepStart") >= 0) {
@@ -87,6 +92,8 @@ void loop() {
       recordValues = true;
     } else if (command.indexOf("recordEnd") >= 0) {
       recordValues = false;
+    } else if (command.indexOf("finalEnd") >= 0) {
+      exit(0);
     }
   }
 
@@ -108,4 +115,5 @@ void loop() {
   if(beepSound == true){
     beep(distance, buzzerPin);
   }
+
 }
